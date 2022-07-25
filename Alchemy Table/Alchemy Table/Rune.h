@@ -5,7 +5,7 @@ struct ManaFlow
 	bool Impulse;
 };
 
-enum class Substance
+enum class Substances
 {
 	Water,
 	Ice,
@@ -25,10 +25,15 @@ struct Vector3
 		Y = yi;
 		Z = zi;
 	}
+
+	float Product()
+	{
+		return X * Y * Z;
+	}
 };
 
 
-enum class Shape
+enum class Shapes
 {
 	Sphere,
 	Ring,
@@ -37,9 +42,10 @@ enum class Shape
 
 struct Effect
 {
-	Substance Type;
-
+	Substances Type;
+	Shapes Shape;
 	Vector3 size;
+	Vector3 Velocity;
 
 	float Intensity;
 	float Temperature;
@@ -52,12 +58,15 @@ public:
 	Rune(Rune* i, Rune* n);
 	Rune(Rune* i, Rune* i2, Rune* n);
 
+
 	virtual float Compute(Effect* e) = 0;
 
 	void SetNext(Rune* n);
 	ManaFlow GetOutput();
 
 protected:
+	void Init();
+
 	Rune* in;
 	Rune* in2;
 	Rune* next;
@@ -74,5 +83,20 @@ public:
 class Combustor : public Rune
 {
 public:
+	float Compute(Effect* e) override;
+};
+
+class SphereShaper : public Rune
+{
+public:
+	Substances type;
+	float Compute(Effect* e) override;
+};
+
+class Concentrator : public Rune
+{
+public:
+	Vector3 Magnitudes;
+	Substances type;
 	float Compute(Effect* e) override;
 };
