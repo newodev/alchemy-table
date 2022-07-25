@@ -100,3 +100,16 @@ public:
 	Substances type;
 	float Compute(Effect* e) override;
 };
+
+class Capacitor : public Rune
+{
+public:
+	float UnitCapacity;
+	float CurrentCharge;
+	int Units;
+	int ChargedUnits;
+
+	bool Triggered;
+
+	float Compute(Effect* e) override;
+};

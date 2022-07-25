@@ -1,5 +1,7 @@
 #include "Rune.h"
 
+#include <cmath>
+
 Rune::Rune()
 {
 	Init();
@@ -101,14 +103,83 @@ float Concentrator::Compute(Effect* e)
 		e->size.Z * Magnitudes.Z
 	);
 
+	// Some shapes can be inverted by strong single-axis concentration, eg sphere -> torus
+	bool invert = newVolume < 0.0f;
+
 	if (newVolume < 0.0f)
 		newVolume = -newVolume;
 
 	float ratio = volume / newVolume;
 	float cost = 0.2 * ratio;
 
+	if (invert && e->Shape != Shapes::Sphere)
+		return -1.0f;
+
+	if (invert && e->Shape == Shapes::Sphere)
+		e->Shape == Shapes::Ring;
+
+	e->size.X = abs(e->size.X * Magnitudes.X);
+	e->size.Y = abs(e->size.Y * Magnitudes.Y);
+	e->size.Z = abs(e->size.Z * Magnitudes.Z);
 	
 	flow.Amount -= cost;
 
 	return cost;
+}
+
+float Capacitor::Compute(Effect* e)
+{
+	ManaFlow input = in->GetOutput();
+
+	float quant = input.Amount;
+
+	// If no in-flow, capcitor fires
+	if (quant == 0.0f && CurrentCharge > 0.0f && !Triggered)
+	{
+		flow = { CurrentCharge, true };
+		ChargedUnits = 0;
+		CurrentCharge = 0.0f;
+		return 0.0f;
+	}
+
+	// Add input to capacitor charge
+	while (ChargedUnits < Units && quant > 0.0f)
+	{
+		CurrentCharge += quant;
+
+		if (CurrentCharge >= UnitCapacity)
+		{
+			quant -= UnitCapacity;
+			CurrentCharge = 0;
+			ChargedUnits++;
+		}
+	}
+
+	// Non-triggered capacitors discharge if full
+	// If not triggered, can only have a single unit
+	if (ChargedUnits == 1 && !Triggered)
+	{
+		flow = { UnitCapacity, true };
+		ChargedUnits = 0;
+		CurrentCharge = 0.0f;
+		return 0.0f;
+	}
+
+	// Triggered Capacitors discharge when the second input sends mana
+	// Trigger must be an impulse
+	if (Triggered && ChargedUnits > 0)
+	{
+		if (in2->GetOutput().Amount <= 0.0f || !in->GetOutput().Impulse)
+		{
+			flow = { 0.0f, true };
+			return 0.0f;
+		}
+
+		flow = { UnitCapacity, true };
+		ChargedUnits--;
+		return 0.0f;
+	}
+	
+	flow = { 0.0f, true };
+	return 0.0f;
 }

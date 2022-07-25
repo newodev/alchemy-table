@@ -144,7 +144,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Alchemy Table.cpp" />
+    <ClCompile Include="Main.cpp" />
+    <ClCompile Include="Rune.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Rune.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
